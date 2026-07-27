@@ -140,12 +140,86 @@ The architecture has been designed so that AI providers can be replaced without 
 
 ---
 
+## Quick Start
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/DnyaneshMahajan/email-monitor.git
+cd email-monitor
+```
+
+### Create a Virtual Environment
+
+**Windows**
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+**Linux / macOS**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Configure Google Cloud Credentials
+
+Create the following directory if it does not already exist:
+
+```text
+credentials/
+```
+
+Obtain an OAuth 2.0 Desktop Application credential (`credentials.json`) from the Google Cloud Console after enabling the Gmail API, and place it in the `credentials/` directory:
+
+```text
+credentials/
+└── credentials.json
+```
+
+The repository intentionally contains only:
+
+```text
+credentials/
+└── .gitkeep
+```
+
+to preserve the directory structure. Personal OAuth credentials and generated authentication tokens must never be committed to source control.
+
+### Run the Application
+
+```bash
+python src/main.py
+```
+
+On the first execution, a browser window will open to complete Google authentication. After successful authentication, a local access token will be generated and reused for subsequent executions.
+
+### Verify the Current Milestone
+
+Run the verification script to confirm that the current milestone has been implemented correctly:
+
+```bash
+python scripts/verify_milestone_3.py
+```
+
+---
+
 ## Project Structure
 
 ```
 email-monitor/
 
-├── credentials/          OAuth credentials (ignored by Git)
+├── credentials/
+|   ├── .gitkeep          Placeholder only. Store credentials.json here.
 ├── scripts/              Verification scripts
 ├── src/
 │   ├── ai/               AI pipeline
@@ -169,6 +243,54 @@ email-monitor/
 ├── AI.md
 └── ROADMAP.md
 ```
+
+---
+
+## Setup
+
+### Prerequisites
+
+Before running the application, you must create a Google Cloud project and enable the Gmail API.
+
+### Google Cloud Credentials
+> **Note:** The application cannot communicate with Gmail until valid OAuth credentials have been configured. These credentials are unique to your Google Cloud project and are not distributed with this repository.
+
+The application uses OAuth 2.0 to securely access a user's Gmail account.
+
+Create a directory named:
+
+```text
+credentials/
+```
+
+Place the following file inside this directory:
+
+```text
+credentials.json
+```
+
+This file is obtained from the Google Cloud Console after creating an OAuth 2.0 Desktop Application.
+
+The repository intentionally includes only:
+
+```text
+credentials/.gitkeep
+```
+
+to preserve the directory structure.
+
+Your personal OAuth credentials must **never** be committed to source control.
+
+### Obtaining `credentials.json`
+
+1. Create a project in Google Cloud Console.
+2. Enable the Gmail API.
+3. Configure the OAuth consent screen.
+4. Create OAuth 2.0 Client Credentials for a Desktop Application.
+5. Download the generated `credentials.json` file.
+6. Copy the file into the `credentials/` directory.
+
+The first time the application runs, a browser window will open to complete Google authentication. After successful authentication, a local token will be generated for future use.
 
 ---
 
