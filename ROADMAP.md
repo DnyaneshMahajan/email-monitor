@@ -26,54 +26,128 @@ Every milestone leaves the project in a stable and deployable state.
 
 ---
 
-# 3. Current Status
+# 3. Current Development Status
 
-## Completed
+The project is developed incrementally through engineering milestones.
 
-- Gmail OAuth Authentication
-- Gmail Client
-- Email Retrieval
-- MIME Parsing
-- Domain Models
-- SQLite Database
-- Database Schema
-- Repository Infrastructure
-- Email Repository (Core Implementation)
-- Verification Framework
+Engineering milestones represent implementation progress and are **not**
+equivalent to released software versions.
+
+Git version tags are created only when the application delivers a complete,
+end-to-end user workflow.
 
 ---
 
-## Currently In Progress
+## Completed Milestones
 
-- Repository Completion
-- Persistence Layer
-- Repository Retrieval Operations
+### Milestone 1 — Project Foundation
+
+Status: ✅ Completed
+
+- Project Structure
+- Development Environment
+- Coding Standards
+- Documentation
+- Build Configuration
+
+---
+
+### Milestone 2 — Domain Model
+
+Status: ✅ Completed
+
+- Email Domain Model
+- EmailRecord Model
+- ProcessingStatus
+- Repository Contracts
+- Exception Hierarchy
+
+---
+
+### Milestone 3 — Persistence Layer
+
+Status: ✅ Completed
+
+- SQLite Database
+- Database Schema
+- SQL Queries
+- SQLiteDatabase
+- Email Repository
+- CRUD Operations
+- Repository Verification Suite
+
+---
+
+## Current Milestone
+
+### Milestone 4 — Gmail Integration
+
+Status: 🚧 In Progress
+
+Objective:
+
+Retrieve emails from Gmail, convert them into domain models,
+and persist them using the repository layer.
+
+Planned Work
+
+- Gmail Authentication
+- Gmail Client
+- Gmail Message Parser
+- Gmail Service
+- Email Import Pipeline
+- Gmail Verification Suite
+
+---
+
+## Upcoming Milestones
+
+- Milestone 5 — AI Processing
+- Milestone 6 — Rules Engine
+- Milestone 7 — Notification Platform
+- Milestone 8 — Dashboard
+- Milestone 9 — Multi-Provider Support
+- Milestone 10 — Advanced AI
+- Milestone 11 — Production Hardening
 
 ---
 
 # 4. Release Roadmap
 
+Git version tags are created only for meaningful product releases.
+
+Internal engineering milestones are tracked separately in the
+Current Development Status section.
+
+Each product release represents a complete, usable increment of
+the Email Monitor platform.
+
 ---
 
-# Version 0.1 — Foundation
+# Version 0.1.0 — Intelligent Email Ingestion
 
 ## Objective
 
-Build the foundational infrastructure required for the rest of the system.
+Deliver the first complete end-to-end workflow.
 
 ### Features
 
 - Gmail Authentication
-- Gmail Provider
-- Email Parser
+- Gmail Email Retrieval
+- MIME Parsing
 - Domain Models
-- SQLite Database
-- Repository Pattern
-- Verification Scripts
+- SQLite Persistence
+- AI Email Summarization
+- Verification Suite
 
-### Status
+### Outcome
 
-Completed
+Retrieve emails from Gmail, generate AI summaries, and persist the
+results using the repository layer.
+
+Status
+
+Planned
 
 ---
 

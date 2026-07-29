@@ -26,7 +26,25 @@ class SQLiteDatabase:
     (Email, Rules, Notifications, AI, etc)
     """
 
-    def __init__(self) -> None:
+    @property
+    def database_file(self) -> Path:
+        return self._database_file
+
+    @property
+    def connection(self) -> Connection:
+        if self._connection is None:
+            raise RuntimeError(
+                "Database has not been initialized."
+            )
+
+        return self._connection
+    
+
+    def __init__(
+        self,
+        database_file: str | Path = DATABASE_FILE,
+    ) -> None:
+        self._database_file = Path(database_file)
         self._connection: Connection | None = None
 
     # -----------------------------------------------------------
@@ -40,20 +58,21 @@ class SQLiteDatabase:
 
         if self._connection is not None:
             return
-        
-        DATABASE_FILE.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
+
+        if self._database_file != Path(":memory:"):
+            self._database_file.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
 
         try:
-            self._connection = sqlite3.connect(DATABASE_FILE)
+            self._connection = sqlite3.connect(self.database_file)
             self._connection.row_factory = sqlite3.Row
             self._configure()
             self._create_schema()
         except Exception:
             if self._connection is not None:
-                self._connection.close()
+                self.connection.close()
                 self._connection = None
 
             raise
@@ -65,7 +84,7 @@ class SQLiteDatabase:
         """
 
         if self._connection is not None:
-            self._connection.close()
+            self.connection.close()
             self._connection = None
 
 
@@ -113,14 +132,17 @@ class SQLiteDatabase:
         self,
         query: str,
         parameters: tuple = (),
+        *,
+        commit: bool = True,
     ) -> Cursor:
         
-        cursor = self._connection.execute(
+        cursor = self.connection.execute(
             query,
             parameters,
         )
 
-        self._connection.commit()
+        if commit:
+            self.commit()
 
         return cursor
     
@@ -129,14 +151,17 @@ class SQLiteDatabase:
         self,
         query: str,
         parameters: list[tuple],
+        *,
+        commit: bool = True,
     ) -> Cursor:
         
-        cursor = self._connection.executemany(
+        cursor = self.connection.executemany(
             query,
             parameters,
         )
 
-        self._connection.commit()
+        if commit:
+            self.commit()
 
         return cursor
 
@@ -167,7 +192,23 @@ class SQLiteDatabase:
         )
 
         return cursor.fetchall()
-    
+
+
+    def commit(self) -> None:
+        """
+        Commit the current transaction.
+        """
+
+        self.connection.commit()
+
+
+    def rollback(self) -> None:
+        """
+        Roll back the current transaction.
+        """
+
+        self.connection.rollback()
+
     # -----------------------------------------------------------
     # Context Manager
     # -----------------------------------------------------------
@@ -182,8 +223,9 @@ class SQLiteDatabase:
         exc_type,
         exc_value,
         traceback,
-    ) -> None:
+    ) -> bool:
         self.close()
+        return False
 
     # -----------------------------------------------------------
     # Private

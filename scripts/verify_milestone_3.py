@@ -32,6 +32,9 @@ print("Email Monitor - Milestone 3 Verification")
 print("=" * 60)
 print()
 
+print("Project Verification")
+print("-" * 60)
+
 verify(
     queries.EMAIL_INSERT != "",
     "queries.py",
@@ -40,7 +43,12 @@ verify(
 verify_project_structure()
 print("[PASS] Project Structure")
 
-database = SQLiteDatabase()
+
+print()
+print("Repository Verification")
+print("-" * 60)
+
+database = SQLiteDatabase(":memory:")
 database.initialize()
 print("[PASS] Database Initialized")
 
@@ -97,25 +105,6 @@ verify(
     "EmailRepository._record_to_parameters()",
 )
 
-email_id = repository._insert(record)
-verify(
-    email_id > 0,
-    "EmailRepository._insert()",
-)
-
-try:
-    repository._insert(record)
-
-    raise RuntimeError(
-        "Expected DuplicateEmailError"
-    )
-
-except exceptions.DuplicateEmailError:
-    verify(
-        True,
-        "DuplicateEmailError"
-    )
-
 now = repository._now()
 
 row = {
@@ -138,46 +127,156 @@ row = {
     "updated_on": now.isoformat(),
 }
 
-record = repository._row_to_record(row)
+mapped_record = repository._row_to_record(row)
 
 verify(
-    record.id == 1,
+    mapped_record.id == 1,
     "EmailRepository._row_to_record(): id",
 )
 
 verify(
-    record.email.provider == "gmail",
+    mapped_record.email.provider == "gmail",
     "EmailRepository._row_to_record(): provider",
 )
 
 verify(
-    record.email.provider_message_id == "MSG-001",
+    mapped_record.email.provider_message_id == "MSG-001",
     "EmailRepository._row_to_record(): provider_message_id",
 )
 
 verify(
-    record.processing_status == ProcessingStatus.NEW,
+    mapped_record.processing_status == ProcessingStatus.NEW,
     "EmailRepository._row_to_record(): processing_status",
 )
 
 verify(
-    record.last_error is None,
+    mapped_record.last_error is None,
     "EmailRepository._row_to_record(): last_error",
 )
 
 verify(
-    record.created_on == now,
+    mapped_record.created_on == now,
     "EmailRepository._row_to_record(): created_on",
 )
 
 verify(
-    record.updated_on == now,
+    mapped_record.updated_on == now,
     "EmailRepository._row_to_record(): updated_on",
+)
+
+
+print()
+print("Public API Verification")
+print("-" * 60)
+
+
+record_id = repository.save(record)
+
+verify(
+    record_id > 0,
+    "EmailRepository.save()",
+)
+
+
+duplicate_record = EmailRecord(
+    id = None,
+    email = email,
+    processing_status = ProcessingStatus.NEW,
+    last_error = None,
+    created_on = repository._now(),
+    updated_on = repository._now(),
+)
+
+try:
+    repository.save(duplicate_record)
+    raise RuntimeError(
+        "Expected DuplicateEmailError"
+    )
+except exceptions.DuplicateEmailError:
+    verify(
+        True,
+        "DuplicateEmailError",
+    )
+
+
+record = repository.get_by_id(record_id)
+
+verify(
+    record is not None,
+    "EmailRepository.get_by_id()",
+)
+
+verify(
+    record.id == record_id,
+    "Retrieved record ID",
+)
+
+record = repository.get_by_provider_message_id(
+    provider = "gmail",
+    provider_message_id = message_id,
+)
+
+verify(
+    record is not None,
+    "EmailRepository.get_by_provider_message_id()"
+)
+
+verify(
+    record.email.provider_message_id == message_id,
+    "Provider message ID matches",
+)
+
+record = repository.update_status(
+    record_id,
+    ProcessingStatus.SUMMARIZED,
+)
+
+verify(
+    record.processing_status == ProcessingStatus.SUMMARIZED,
+    "EmailRepository.update_status()",
+)
+
+verify(
+    record.last_error is None,
+    "Last error cleared",
+)
+
+record = repository.update_failure(
+    record_id,
+    "Verification Failure",
+)
+
+verify(
+    record.processing_status == ProcessingStatus.FAILED,
+    "EmailRepository.update_failure()",
+)
+
+verify(
+    record.last_error == "Verification Failure",
+    "Failure message stored",
+)
+
+verify(
+    repository.delete(record_id),
+    "EmailRepository.delete()"
+)
+
+verify(
+    repository.get_by_id(record_id) is None,
+    "Deleted record cannot be retrieved",
+)
+
+verify(
+    repository.exists(
+        provider = "gmail",
+        provider_message_id = message_id,
+    ) is False,
+    "Deleted record no longer exists",
 )
 
 print()
 print("=" * 60)
-print("Milestone 3.2 Verification Successful")
+print("Milestone 3 Verification Successful")
 print("=" * 60)
 
 database.close()

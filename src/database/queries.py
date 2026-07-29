@@ -64,3 +64,23 @@ WHERE
     provider = ?
     AND provider_message_id = ?
 """
+
+
+EMAIL_UPDATE_STATUS = """
+UPDATE
+    emails
+SET
+    processing_status = ?,
+    last_error = ?,
+    updated_on = ?
+WHERE
+    id = ?
+"""
+
+
+EMAIL_DELETE_BY_ID = """
+DELETE FROM
+    emails
+WHERE
+    id = ?
+"""

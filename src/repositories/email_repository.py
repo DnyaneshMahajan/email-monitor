@@ -37,13 +37,27 @@ class EmailRepository:
     # Public API
     #
 
+    # CREATE
     def save(
         self,
-        email: Email,
-    ) -> EmailRecord:
-        raise NotImplementedError
+        record: EmailRecord,
+    ) -> int:
+        """
+        Save a new email record
+
+        Returns:
+            The database ID of the newly inserted record.
+        """
+
+        if record.id is not None:
+            ValueError(
+                "Cannot save an EmailRecord that already has an ID. Use update_status() instead."
+            )
+
+        return self._insert(record)
 
 
+    # READ
     def exists(
         self,
         *,
@@ -78,9 +92,24 @@ class EmailRepository:
 
     def get_by_id(
         self,
-        id: int,
+        record_id: int,
     ) -> EmailRecord | None:
-        raise NotImplementedError
+        """
+        Retrieve an email record by its database ID.
+
+        Returns:
+            EmailRecord if found, otherwise None.
+        """
+
+        row = self._database.fetchone(
+            queries.EMAIL_SELECT_BY_ID,
+            (record_id,),
+        )
+
+        if row is None:
+            return None
+
+        return self._row_to_record(row)
 
 
     def get_by_provider_message_id(
@@ -88,21 +117,108 @@ class EmailRepository:
         provider: str,
         provider_message_id: str,
     ) -> EmailRecord | None:
-        raise NotImplementedError
+        """
+        Retrieve an email record using the provider and provider message ID.
+        
+        Returns:
+            EmailRecord if found, otherwise None.
+        """
 
+        row = self._database.fetchone(
+            queries.EMAIL_SELECT_BY_PROVIDER_MESSAGE_ID,
+            (
+                provider,
+                provider_message_id,
+            ),
+        )
 
-    def update(
+        if row is None:
+            return None
+
+        return self._row_to_record(row)
+    
+
+    # UPDATE
+    def update_status(
         self,
-        record: EmailRecord,
-    ) -> None:
-        raise NotImplementedError
+        record_id: int,
+        status: ProcessingStatus,
+        last_error: str | None = None,
+    ) -> EmailRecord:
+        """
+        Update the processing status of an email
+        
+        Returns:
+            The updated EmailRecord.
+            
+        Raises:
+            RepositoryError:
+                If the email record does not exist.
+        """
+        updated_on = self._now()
+
+        cursor = self._database.execute(
+            queries.EMAIL_UPDATE_STATUS,
+            (
+                status,
+                last_error,
+                updated_on,
+                record_id,
+            )
+        )
+
+        if cursor.rowcount == 0:
+            raise exceptions.RepositoryError(
+                f"Email record with ID {record_id}, does not exist."
+            )
+
+        record = self.get_by_id(record_id)
+
+        if record is None:
+            raise EmailRepository(
+                f"Failed to retrieve updated email record with ID {record_id}."
+            )
+        
+        return record
 
 
+    def update_failure(
+            self,
+            record_id: int,
+            error: str,
+    ) -> EmailRecord:
+        """
+        Mark an email as failed and record the error message.
+        
+        Returns:
+            The updated EmailRecord.
+        """
+
+        return self.update_status(
+            record_id = record_id,
+            status = ProcessingStatus.FAILED,
+            last_error = error,
+        )
+
+
+    # DELETE
     def delete(
         self,
-        id: int,
-    ) -> None:
-        raise NotImplementedError
+        record_id: int,
+    ) -> bool:
+        """
+        Delete an email record.
+        
+        Returns:
+            True if the record was deleted, otherwise False.
+        """
+
+        cursor = self._database.execute(
+            queries.EMAIL_DELETE_BY_ID,
+            (record_id,),
+        )
+
+        return cursor.rowcount > 0
 
     #
     # Private helpers
